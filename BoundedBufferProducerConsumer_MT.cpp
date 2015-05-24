@@ -7,39 +7,47 @@
 
 using namespace std;
 
-class DailyAvgStats {
+class DailyAvgStats { //TODO: Change to singleton class
   public:
     static const int BUFFSIZE = 10;  // Size of the buffer
 
     static const int PRODUCERS_COUNT = 5;  // Number of producers
-    static const int MAX_ITEMS_PER_PRODUCER = 4; // Max number of items each producer can produce
+    static const int MAX_ITEMS_PER_PRODUCER = 4; // Max #items each producer can produce
     static const int TOTAL_ITEMS = 20; // Total number of items produced
 
     static const int CONSUMERS_COUNT = 6;  // Number of consumers
 };
 
-class Store { // TODO: Create singleton class
+class Store { // Singleton class
 
 private:
-  int _bufindex; // Current index where producer can put or consumer can get
+
+  int _bufindex; // Current index where producer can put or consumer can take from
   int _consumed; // Total items consumed so far
 
-  pthread_mutex_t _buflock; // Lock of shared buffer 
+  pthread_mutex_t _buflock; // Lock of shared buffer while produce/consume
   int *_produced; // Number of items produced so far by each porducer
 
   int *buffer; // The Shared Buffer
 
-public:
+
+protected:
 
   Store () : _bufindex(-1), _consumed(0)  {
     pthread_mutex_init(&_buflock, NULL);
-
+    
     _produced = new int[DailyAvgStats::PRODUCERS_COUNT];
     for (int i=0; i<DailyAvgStats::PRODUCERS_COUNT; i++)
        _produced[i] = 0;
 
     buffer = new int[DailyAvgStats::BUFFSIZE];
   }
+
+
+public:
+
+  static Store* GetStore();
+
 
   void PutFromProducer(int which) {
     while (_produced[which] < DailyAvgStats::MAX_ITEMS_PER_PRODUCER) {
@@ -52,6 +60,7 @@ public:
       pthread_mutex_unlock(&_buflock);
     }
   }
+
   void GetToConsumer(int which) {
     while (_consumed < DailyAvgStats::TOTAL_ITEMS) {
       pthread_mutex_lock(&_buflock);
@@ -70,6 +79,16 @@ public:
     delete [] buffer;
   }
 };
+
+Store* Store::GetStore() {
+  static Store* single_store = NULL;
+  if (!single_store) {
+    single_store = new Store();
+  }
+  return single_store;
+}
+
+
 
 struct thread_arg {
   int thread_id;
@@ -112,13 +131,15 @@ void* Consumer::Consume(void* arg) {
   }
   pthread_exit((void*) 0);
 }
+
+
 class System {  // TODO: Create singleton class
   Store *singleton_store;
 
   public:
 
   System() {
-    singleton_store = new Store;
+    singleton_store = Store::GetStore();
   }
 
   void Simulate() {
@@ -141,6 +162,22 @@ class System {  // TODO: Create singleton class
         printf ("Unable to create producer thread %d\n", i);
       }
     }
+
+
+    pthread_t consumer_threads[DailyAvgStats::CONSUMERS_COUNT];
+    thread_arg* cargs[DailyAvgStats::CONSUMERS_COUNT];
+
+    for(int i=0; i<DailyAvgStats::CONSUMERS_COUNT; i++) {
+      cargs[i] = new thread_arg;
+      cargs[i]->thread_id = i;
+      cargs[i]->_store = singleton_store;
+      int rc = pthread_create(&consumer_threads[i], &attr, Consumer::Consume, cargs[i]);
+
+      if (rc) {
+        printf ("Unable to create consumer thread %d\n", i);
+      }
+    }
+
     for(int i=0; i<DailyAvgStats::PRODUCERS_COUNT; i++) {
       int rc = pthread_join(producer_threads[i], &status);
 
@@ -161,12 +198,12 @@ class System {  // TODO: Create singleton class
 
     pthread_attr_destroy(&attr);
   }
-
+       
   ~System() {
     delete singleton_store;
   }
 };
-
+  
 int main() {
 
   System *sys = new System();
