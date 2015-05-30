@@ -1,10 +1,21 @@
+/*** Program to *******************************
+ * 1. Create Graph
+ * 2. Print Graph
+ * 3. Dump Graph in memory buffer
+ * 4. Print memory buffer of Graph
+ * 5. Dump memory buffer of Graph to disk
+ * 6. Restore memory buffer of Graph from disk
+ * 7. Recreate Graph from memory buffer
+ * ********************************************/
+
+
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 
 using namespace std;
 
-#define ALLOC 11
+#define ALLOC 16
 #define PAD -1
 #define START -2
 #define END -3
