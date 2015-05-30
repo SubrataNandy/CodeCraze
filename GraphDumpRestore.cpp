@@ -58,11 +58,11 @@ public:
       
       if (start >= vcount) {
           cerr << "Can't add vertex " << start << endl;
-          cerr << "Exceeds graph vertext count" << endl;
+          cerr << "Exceeds graph vertex count" << endl;
       }
       if (end >= vcount) {
           cerr << "Can't add vertex " << end << endl;
-          cerr << "Exceeds graph vertext count" << endl;
+          cerr << "Exceeds graph vertex count" << endl;
       }
       gnode* node = adjList[start];
       
@@ -105,6 +105,8 @@ public:
     }
   }
   
+  /** Dump Graph in memory buffer **/
+  /** Resize buffer as necessary **/
   void* MemDump(int& count, int& size) {
     int MAX = ALLOC;
     
@@ -183,16 +185,19 @@ public:
       cout << endl;
   }
   
+  /** Dump Graph memory-buffer to disk **/
   void DiskDump(void *buff, int size, FILE* fp) {
       //fwrite(buff, sizeof(int), count, fp);
       fwrite(buff, 1, size, fp);
   }
   
+  /** Load Graph memory-buffer from disk **/
   void DiskLoad(void *newbuff, int size, FILE* fp) {
       //fread(newbuff, sizeof(int), count, fp);
       fread(newbuff, 1, size, fp);
   }
   
+  /** Recreate Graph from memory-buffer **/
   void Restore(void* newbuff, int count) {
       int* ibuff = (int*)newbuff;
       adjList = new gnode* [vcount];
