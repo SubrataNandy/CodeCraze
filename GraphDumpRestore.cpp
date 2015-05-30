@@ -17,8 +17,7 @@ using namespace std;
 
 #define ALLOC 16
 #define PAD -1
-#define START -2
-#define END -3
+#define END -2
 
 
 struct gnode {
