@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define ALLOC 64
+#define ALLOC 11
 #define PAD -1
 #define START -2
 #define END -3
@@ -94,23 +94,24 @@ public:
     }
   }
   
-  void* MemDump(int& count) {
-    int *buffer = (int*)malloc(ALLOC);
-    int *tmpbuff = buffer;
+  void* MemDump(int& count, int& size) {
     int MAX = ALLOC;
     
     if (MAX%2 == 0)
       MAX++;
+      
+    int *buffer = (int*)malloc(MAX);
+    int *tmpbuff = buffer;
     
-    cout << "INT Size " << sizeof(int) << endl;
+    //cout << "INT Size " << sizeof(int) << endl;
    
     for (int i=0; i<vcount; i++) {
       if (adjList[i]) {
           gnode *node = adjList[i];
           while (node) {
             if (tmpbuff+sizeof(int) > buffer+MAX) {
-                cout << "1.Tmp buff:" << tmpbuff << endl;
-                cout << "2.Buff:" << buffer << endl;
+                //cout << "1.Tmp buff:" << tmpbuff << endl;
+                //cout << "2.Buff:" << buffer << endl;
                 MAX += ALLOC;
                 
                 if (MAX%2 == 0)
@@ -118,20 +119,20 @@ public:
                 
                 buffer = (int*)realloc(buffer, MAX);
                 tmpbuff = buffer + count*sizeof(int);
-                cout << "After" << endl;
-                cout << "1.Tmp buff:" << tmpbuff << endl;
-                cout << "2.Buff:" << buffer << endl;
+                //cout << "After" << endl;
+                //cout << "1.Tmp buff:" << tmpbuff << endl;
+                //cout << "2.Buff:" << buffer << endl;
             }
             *tmpbuff = node->data;
-            cout << "Data: " << *tmpbuff << " Buff: " << tmpbuff << endl;
+            //cout << "Data: " << *tmpbuff << " Buff: " << tmpbuff << endl;
             count++;
             tmpbuff += sizeof(int);
             node = node->next;
           }
           
           if (tmpbuff+sizeof(int) > buffer+MAX) {
-            cout << "3.Tmp buff:" << tmpbuff << endl;
-            cout << "4.Buff:" << buffer << endl;
+            //cout << "3.Tmp buff:" << tmpbuff << endl;
+            //cout << "4.Buff:" << buffer << endl;
             MAX += ALLOC;
             
             if (MAX%2 == 0)
@@ -139,14 +140,14 @@ public:
             
             buffer = (int*)realloc(buffer, MAX);
             tmpbuff = buffer + count*sizeof(int);
-            cout << "After" << endl;
-            cout << "3.Tmp buff:" << tmpbuff << endl;
-            cout << "4.Buff:" << buffer << endl;
+            //cout << "After" << endl;
+            //cout << "3.Tmp buff:" << tmpbuff << endl;
+            //cout << "4.Buff:" << buffer << endl;
           }
           
           *tmpbuff = PAD;
           count++;
-          cout << "Pad Data: " << *tmpbuff << " Buff: " << tmpbuff << endl;
+          //cout << "Pad Data: " << *tmpbuff << " Buff: " << tmpbuff << endl;
           tmpbuff += sizeof(int);
       }
     }  
@@ -157,7 +158,7 @@ public:
     }
     *tmpbuff = END;
     count++;
-    
+    size = MAX;
     return buffer;
   }
   
@@ -171,12 +172,14 @@ public:
       cout << endl;
   }
   
-  void DiskDump(void *buff, int count, FILE* fp) {
-      fwrite(buff, sizeof(int), count, fp);
+  void DiskDump(void *buff, int size, FILE* fp) {
+      //fwrite(buff, sizeof(int), count, fp);
+      fwrite(buff, 1, size, fp);
   }
   
-  void DiskLoad(void *newbuff, int count, FILE* fp) {
-      fread(newbuff, sizeof(int), count, fp);
+  void DiskLoad(void *newbuff, int size, FILE* fp) {
+      //fread(newbuff, sizeof(int), count, fp);
+      fread(newbuff, 1, size, fp);
   }
   
   void Restore(void* newbuff, int count) {
@@ -222,7 +225,7 @@ public:
 
 int main()
 {
-   FILE* fp = fopen("diskdump", "w");
+   FILE* fp = fopen("diskdump", "wb");
    
    if (!fp) {
        cout << "Couldn't open file for writing." << endl;
@@ -239,26 +242,29 @@ int main()
    
    g->Print();
    
-   int count = 0;
-   void* buff = g->MemDump(count);
+   int count = 0, size = 0;
+   void* buff = g->MemDump(count, size);
    
-   g->DiskDump(buff, count, fp);
+   //g->DiskDump(buff, count, fp);
+   g->DiskDump(buff, size, fp);
    
-   //g->PrintMemDump(buff, count);
+   g->PrintMemDump(buff, count);
    
    fclose(fp);
    free(buff);
    
    g->Clear();
    
-   fp = fopen("diskdump", "r");
+   fp = fopen("diskdump", "rb");
    
    if (!fp) {
        cout << "Couldn't open file for reading." << endl;
    }
-   void* newbuff = malloc(sizeof(int)*count);
+   //void* newbuff = malloc(sizeof(int)*count);
+   void* newbuff = malloc(size);
    
-   g->DiskLoad(newbuff, count, fp);
+   //g->DiskLoad(newbuff, count, fp);
+   g->DiskLoad(newbuff, size, fp);
    
    g->PrintMemDump(newbuff, count);
    
