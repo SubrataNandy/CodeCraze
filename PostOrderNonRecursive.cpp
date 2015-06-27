@@ -49,18 +49,18 @@ void PostOrderNonRec(bnode* root) {
 
     while (root) {
 
-      Stack.push_back(root);
+      Stack.push_back(root);  // put this node in stack
 
       if (root->right && NotPushed(root->right)) { // Don't traverse child again
         SetPushed(root->right);
-        Stack.push_back(root->right);
+        Stack.push_back(root->right);  // put right child in stack
       }
 
       if (NotPushed(root->left)) { // Dont't traverse child again
         SetPushed(root->left);
-        root = root->left;
+        root = root->left; // go to left child
       }
-      else {  // Both children traversed
+      else {  // Both children already traversed
         break;
       }
     }
