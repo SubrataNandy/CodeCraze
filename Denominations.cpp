@@ -9,6 +9,7 @@
 
 using namespace std;
 
+/* Recursive solution */
 int CountChange(int s[], int n, int m) {
 
   if (n == 0) {  // changes found for amount
@@ -29,7 +30,7 @@ int CountChange(int s[], int n, int m) {
 
 }
 
-
+/* Dynamic programming solution */
 int CountChangeDP (int s[], int n, int m) {
 
   // creation and intialization of table
