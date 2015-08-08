@@ -1,4 +1,4 @@
-  ****************************************************
+  /****************************************************
   Find total ways to provide changes
    of Rs. n
    when m types of denominations are available
